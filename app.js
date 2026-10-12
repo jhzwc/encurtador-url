@@ -29,4 +29,23 @@ app.post('/links', async (req, res) => {
     res.status(201).json({ codigo });
 });
 
+app.get('/:codigo', async (req, res) => {
+    const { codigo } = req.params;
+const [linhas] = await pool.execute(
+    'SELECT url_original FROM links WHERE codigo = ?',
+    [codigo]
+);
+
+if (linhas.length === 0) {
+    return res.status(404).json({ erro: 'Link nao encontrado' });
+}
+
+await pool.execute(
+    'UPDATE links SET cliques = cliques + 1 WHERE codigo = ?',
+    [codigo]
+);
+
+res.redirect(302, linhas[0].url_original);
+});
+
 module.exports = app;
